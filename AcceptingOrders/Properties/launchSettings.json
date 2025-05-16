@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "AcceptingOrders": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7193",
+      "launchBrowser": false
+    }
+  }
+}
