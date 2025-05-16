@@ -5,15 +5,12 @@ using Microsoft.Extensions.Logging;
 
 namespace TestAzure.AcceptingOrders;
 
-public class OrdersMethods
+public class OrdersMethods(ILogger<OrdersMethods> logger) : BaseFunctions(logger)
 {
-    private readonly ILogger<OrdersMethods> _logger;
-    public OrdersMethods(ILogger<OrdersMethods> logger) => _logger = logger;
-
-    [Function("OrdersMethods")]
+    [Function("NewOrder")]
     public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = "orders")] HttpRequest req)
     {
-        _logger.LogInformation("C# HTTP trigger function processed a request.");
+        Logger.LogInformation("C# HTTP trigger function processed a request.");
         return new OkObjectResult("Welcome to Azure Functions!");
     }
 }
