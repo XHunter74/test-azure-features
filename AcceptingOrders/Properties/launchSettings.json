@@ -3,7 +3,9 @@
     "AcceptingOrders": {
       "commandName": "Project",
       "commandLineArgs": "--port 7193",
-      "launchBrowser": false
+      "environmentVariables": {
+        "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=testordersstorage;AccountKey=/Ra01kqaDV2gEENIGG9VQRoe88dAnF3mnxU0oidA4luJWwee9yHo4vMg4XdMc2stRTXBM//b2m6j+AStPJj7mA==;EndpointSuffix=core.windows.net"
+      }
     }
   }
 }
