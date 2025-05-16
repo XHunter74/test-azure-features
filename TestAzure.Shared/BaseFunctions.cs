@@ -12,7 +12,7 @@ public class BaseFunctions
     public ILogger Logger { get; set; }
     public BaseFunctions(ILogger logger) => Logger = logger;
     public static string StorageConnectionString => Environment.GetEnvironmentVariable("AzureWebJobsStorage") ?? string.Empty;
-    public static string ServiceBusConnectionString => Environment.GetEnvironmentVariable("ServiceBus") ?? string.Empty;
+    public static string ServiceBusConnectionString => Environment.GetEnvironmentVariable("ServiceBusConnection") ?? string.Empty;
 
     public async Task<HttpResponseData> CreateBadRequestResponse(HttpRequestData req)
     {
@@ -25,13 +25,13 @@ public class BaseFunctions
     public async Task SendMessageToServiceBus(string queueName, object message, CancellationToken cancellationToken)
     {
         var adminClient = new ServiceBusAdministrationClient(ServiceBusConnectionString);
-        if (!await adminClient.QueueExistsAsync(Constants.NewOrdersQueue, cancellationToken))
+        if (!await adminClient.QueueExistsAsync(queueName, cancellationToken))
         {
-            await adminClient.CreateQueueAsync(Constants.NewOrdersQueue, cancellationToken: cancellationToken);
+            await adminClient.CreateQueueAsync(queueName, cancellationToken: cancellationToken);
         }
 
         await using var serviceBusClient = new ServiceBusClient(ServiceBusConnectionString);
-        var ordersQueueSender = serviceBusClient.CreateSender(Constants.NewOrdersQueue);
+        var ordersQueueSender = serviceBusClient.CreateSender(queueName);
         var orderMessage = new ServiceBusMessage(JsonSerializer.Serialize(message));
         await ordersQueueSender.SendMessageAsync(orderMessage, cancellationToken);
     }
