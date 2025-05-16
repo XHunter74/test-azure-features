@@ -9,10 +9,8 @@ using TestAzure.Shared;
 
 namespace TestAzure.AcceptingOrders;
 
-public class OrdersMethods : BaseFunctions
+public class OrdersMethods(ILogger<OrdersMethods> logger) : BaseFunctions(logger)
 {
-    public OrdersMethods(ILogger<OrdersMethods> logger) : base(logger) { }
-
     [Function("NewOrder")]
     public async Task<HttpResponseData> NewOrder(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "orders")] HttpRequestData req,

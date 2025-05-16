@@ -4,16 +4,15 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.Json;
-using TestAzure.Shared;
 
-namespace TestAzure.AcceptingOrders;
+namespace TestAzure.Shared;
 
 public class BaseFunctions
 {
     public ILogger Logger { get; set; }
     public BaseFunctions(ILogger logger) => Logger = logger;
     public static string StorageConnectionString => Environment.GetEnvironmentVariable("AzureWebJobsStorage") ?? string.Empty;
-    public static string ServiceBusConnectionString => Environment.GetEnvironmentVariable("ServiceBusConnectionString") ?? string.Empty;
+    public static string ServiceBusConnectionString => Environment.GetEnvironmentVariable("ServiceBus") ?? string.Empty;
 
     public async Task<HttpResponseData> CreateBadRequestResponse(HttpRequestData req)
     {

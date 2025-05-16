@@ -3,6 +3,7 @@ using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using TestAzure.Shared;
 using TestAzure.Shared.Models;
 
 namespace TestAzure.AcceptingOrders;
