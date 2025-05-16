@@ -8,7 +8,8 @@ public class BaseFunctions
 {
     public ILogger Logger { get; set; }
     public BaseFunctions(ILogger logger) => Logger = logger;
-    public string StorageConnectionString => Environment.GetEnvironmentVariable("AzureWebJobsStorage") ?? string.Empty;
+    public static string StorageConnectionString => Environment.GetEnvironmentVariable("AzureWebJobsStorage") ?? string.Empty;
+    public static string ServiceBusConnectionString => Environment.GetEnvironmentVariable("ServiceBusConnectionString") ?? string.Empty;
 
     public async Task<HttpResponseData> CreateBadRequestResponse(HttpRequestData req)
     {

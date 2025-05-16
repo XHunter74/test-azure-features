@@ -5,6 +5,9 @@ using System.Net;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Http;
 using TestAzure.Shared.Models;
+using Azure.Messaging.ServiceBus;
+using System.Text.Json;
+using TestAzure.Shared;
 
 namespace TestAzure.AcceptingOrders;
 
@@ -78,6 +81,11 @@ public class OrdersMethods : BaseFunctions
                 TotalPrice = totalPrice,
                 PlacedAt = DateTime.UtcNow
             };
+
+            await using var serviceBusClient = new ServiceBusClient(ServiceBusConnectionString);
+            var ordersQueueSender = serviceBusClient.CreateSender(Constants.NewOrdersQueue);
+            var orderMessage = new ServiceBusMessage(JsonSerializer.Serialize(placedOrder));
+            await ordersQueueSender.SendMessageAsync(orderMessage, cancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(placedOrder, cancellationToken);
