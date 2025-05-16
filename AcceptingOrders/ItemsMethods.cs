@@ -57,7 +57,8 @@ public class ItemsMethods(ILogger<ItemsMethods> logger) : BaseFunctions(logger)
         var entity = new TableEntity("items", id.ToString())
         {
             ["Name"] = newItemDto.Name,
-            ["Price"] = Convert.ToDouble(newItemDto.Price)
+            ["Price"] = Convert.ToDouble(newItemDto.Price),
+            ["NormalizedName"] = newItemDto.Name.ToLowerInvariant()
         };
 
         Logger.LogInformation("Adding new item with ID {ItemId} to Azure Table Storage.", id);
