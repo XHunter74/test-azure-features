@@ -24,17 +24,14 @@ public class ProcessOrderMethods(ILogger<ProcessOrderMethods> logger) : BaseFunc
         {
             var errorsClient = new TableClient(StorageConnectionString, "ordererrors");
             var deadOrder = JsonSerializer.Deserialize<PlacedOrderDto>(message.Body.ToString());
-            var partitionKey = deadOrder is not null
-                ? deadOrder.OrderId.ToString()
-                : Guid.NewGuid().ToString();
-            var errorEntity = new TableEntity(partitionKey, message.MessageId)
+            var errorEntity = new TableEntity("errors", deadOrder.OrderId.ToString())
             {
                 ["SerializedOrder"] = message.Body.ToString(),
                 ["Reason"] = reason ?? string.Empty,
                 ["Description"] = description ?? string.Empty,
                 ["LoggedAt"] = DateTime.UtcNow
             };
-            await errorsClient.AddEntityAsync(errorEntity);
+            await errorsClient.AddEntityAsync(errorEntity, cancellationToken);
             var ordersClient = new TableClient(StorageConnectionString, "orders");
             var updateEntity = new TableEntity("orders", deadOrder.OrderId.ToString())
             {
