@@ -4,11 +4,10 @@ using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using System.Threading;
 using TestAzure.Shared;
 using TestAzure.Shared.Models.Dto;
 
-namespace TestAzure.ProcessOrders;
+namespace TestAzure.ProcessOrders.Queues;
 
 public class ProcessOrderMethods(ILogger<ProcessOrderMethods> logger) : BaseFunctions(logger)
 {
@@ -97,6 +96,7 @@ public class ProcessOrderMethods(ILogger<ProcessOrderMethods> logger) : BaseFunc
         catch (Exception ex)
         {
             Logger.LogError(ex, "An error occurred while updating the order status in Azure Table Storage.");
+            return;
         }
         await SendMessageToServiceBus(Constants.ReportsQueue, order, cancellationToken);
 
