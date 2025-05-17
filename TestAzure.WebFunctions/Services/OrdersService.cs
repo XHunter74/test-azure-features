@@ -55,4 +55,40 @@ public class OrdersService(ILogger<ItemsService> logger) : BaseService(logger)
 
         return placedOrder;
     }
+
+    public async Task<PlacedOrderDto?> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        var ordersClient = new TableClient(StorageConnectionString, "orders");
+        try
+        {
+            var response = await ordersClient.GetEntityAsync<TableEntity>(
+                partitionKey: "orders",
+                rowKey: orderId.ToString(),
+                cancellationToken: cancellationToken);
+            var entity = response.Value;
+
+            if (entity == null)
+                return null;
+
+            var placedOrder = new PlacedOrderDto
+            {
+                OrderId = orderId,
+                CustomerName = entity.GetString("CustomerName")!,
+                ProductName = entity.GetString("ProductName")!,
+                Quantity = entity.GetInt32("Quantity") ?? 0,
+                UnitPrice = Convert.ToDecimal(entity.GetDouble("UnitPrice")),
+                TotalPrice = Convert.ToDecimal(entity.GetDouble("TotalPrice")),
+                Status = (OrderStatus)(entity.GetInt32("Status") ?? 0),
+                PlacedAt = entity.GetDateTime("PlacedAt") ?? DateTime.MinValue
+            };
+
+            Logger.LogInformation("Order {OrderId} retrieved", orderId);
+            return placedOrder;
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            Logger.LogWarning("Order {OrderId} not found", orderId);
+            return null;
+        }
+    }
 }

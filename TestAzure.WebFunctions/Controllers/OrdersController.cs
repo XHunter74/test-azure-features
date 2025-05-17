@@ -59,4 +59,29 @@ public class OrdersController(ILogger<OrdersController> logger,
             return errorResponse;
         }
     }
+    
+    [Function("GetOrderById")]
+    public async Task<HttpResponseData> GetOrderById(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "orders/{orderId}")] HttpRequestData req,
+        string orderId,
+        CancellationToken cancellationToken)
+    {
+        Logger.LogInformation("Retrieving order by ID {OrderId}", orderId);
+        if (!Guid.TryParse(orderId, out var guid))
+        {
+            return await CreateBadRequestResponse(req);
+        }
+
+        var order = await _ordersService.GetOrderByIdAsync(guid, cancellationToken);
+        if (order == null)
+        {
+            var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+            await notFound.WriteStringAsync("Order not found", cancellationToken);
+            return notFound;
+        }
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(order, cancellationToken);
+        return response;
+    }
 }
