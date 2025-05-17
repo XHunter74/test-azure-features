@@ -10,7 +10,7 @@ using TestAzure.Shared.Services;
 
 namespace TestAzure.ProcessOrders.Queues;
 
-public class ProcessOrderMethods(ILogger<ProcessOrderMethods> logger,
+public class ManageOrdersQueue(ILogger<ManageOrdersQueue> logger,
     ServiceBusService serviceBusService) : BaseFunctions(logger, serviceBusService)
 {
     [Function("ProcessDeadLetters")]

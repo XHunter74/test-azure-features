@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAzure.AcceptingOrders", "AcceptingOrders\TestAzure.AcceptingOrders.csproj", "{9A16FDC9-FF8F-41BB-83D1-C8350FA4A558}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAzure.WebFunctions", "TestAzure.WebFunctions\TestAzure.WebFunctions.csproj", "{9A16FDC9-FF8F-41BB-83D1-C8350FA4A558}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAzure.Shared", "TestAzure.Shared\TestAzure.Shared.csproj", "{3BE2FDCD-9D80-42BF-A4B7-6041545BA1E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAzure.ProcessOrders", "TestAzure.ProcessOrders\TestAzure.ProcessOrders.csproj", "{68FB44D1-3291-4FD1-BA6D-BD87E4892712}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAzure.QueueFunctions", "TestAzure.QueueFunctions\TestAzure.QueueFunctions.csproj", "{68FB44D1-3291-4FD1-BA6D-BD87E4892712}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
