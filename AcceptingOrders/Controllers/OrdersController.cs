@@ -2,14 +2,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Http;
 using TestAzure.Shared;
 using TestAzure.Shared.Models.Dto;
+using TestAzure.AcceptingOrders.Services;
 
-namespace TestAzure.AcceptingOrders;
+namespace TestAzure.AcceptingOrders.Controllers;
 
-public class OrdersMethods(ILogger<OrdersMethods> logger) : BaseFunctions(logger)
+public class OrdersController(ILogger<OrdersController> logger, OrdersService _ordersService) : BaseFunctions(logger)
 {
     [Function("NewOrder")]
     public async Task<HttpResponseData> NewOrder(
@@ -34,52 +34,17 @@ public class OrdersMethods(ILogger<OrdersMethods> logger) : BaseFunctions(logger
                 return await CreateBadRequestResponse(req);
             }
 
-            var itemsClient = new TableClient(StorageConnectionString, "items");
-            TableEntity? itemEntity = null;
-            await foreach (var entity in itemsClient.QueryAsync<TableEntity>(
-                filter: $"NormalizedName eq '{newOrder.ProductName.ToLowerInvariant()}'",
-                cancellationToken: cancellationToken))
-            {
-                itemEntity = entity;
-                break;
-            }
-            if (itemEntity == null)
+            var placedOrder = await _ordersService.CreateOrderAsync(newOrder, cancellationToken);
+
+            if (placedOrder == null)
             {
                 var notFound = req.CreateResponse(HttpStatusCode.BadRequest);
                 await notFound.WriteStringAsync("Product not found", cancellationToken);
                 return notFound;
             }
-            var unitPrice = Convert.ToDecimal(itemEntity.GetDouble("Price"));
-            var totalPrice = unitPrice * newOrder.Quantity;
-
-            var orderId = Guid.NewGuid();
-            var ordersClient = new TableClient(StorageConnectionString, "orders");
-            var orderEntity = new TableEntity("orders", orderId.ToString())
-            {
-                ["CustomerName"] = newOrder.CustomerName,
-                ["ProductName"] = newOrder.ProductName,
-                ["Quantity"] = newOrder.Quantity,
-                ["UnitPrice"] = Convert.ToDouble(unitPrice),
-                ["TotalPrice"] = Convert.ToDouble(totalPrice),
-                ["Status"] = (int)OrderStatus.New,
-                ["PlacedAt"] = DateTime.UtcNow
-            };
-            await ordersClient.AddEntityAsync(orderEntity, cancellationToken);
-
-            var placedOrder = new PlacedOrderDto
-            {
-                OrderId = orderId,
-                CustomerName = newOrder.CustomerName,
-                ProductName = newOrder.ProductName,
-                Status = OrderStatus.New,
-                Quantity = newOrder.Quantity,
-                UnitPrice = unitPrice,
-                TotalPrice = totalPrice,
-                PlacedAt = DateTime.UtcNow
-            };
 
             await SendMessageToServiceBus(Constants.NewOrdersQueue, placedOrder, cancellationToken);
-            
+
             var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(placedOrder, cancellationToken);
             return response;
