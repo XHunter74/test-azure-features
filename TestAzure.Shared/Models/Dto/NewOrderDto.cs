@@ -1,4 +1,4 @@
-﻿namespace TestAzure.Shared.Models;
+﻿namespace TestAzure.Shared.Models.Dto;
 
 public class NewOrderDto
 {

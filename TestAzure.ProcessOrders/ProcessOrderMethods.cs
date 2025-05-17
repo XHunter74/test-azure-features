@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Threading;
 using TestAzure.Shared;
-using TestAzure.Shared.Models;
+using TestAzure.Shared.Models.Dto;
 
 namespace TestAzure.ProcessOrders;
 

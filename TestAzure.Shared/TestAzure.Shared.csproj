@@ -14,4 +14,8 @@
 		<PackageReference Include="Azure.Messaging.ServiceBus" Version="7.15.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Models\Entities\" />
+	</ItemGroup>
+
 </Project>
