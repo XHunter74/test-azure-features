@@ -48,6 +48,8 @@ public class OrdersController(ILogger<OrdersController> logger,
             await ServiceBusService.SendMessageToServiceBus(Constants.NewOrdersQueue, placedOrder, cancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
+            var location = new Uri(req.Url, $"orders/{placedOrder.OrderId}");
+            response.Headers.Add("Location", location.ToString());
             await response.WriteAsJsonAsync(placedOrder, cancellationToken);
             return response;
         }
