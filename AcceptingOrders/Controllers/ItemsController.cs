@@ -1,14 +1,16 @@
-using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using System.Net;
 using TestAzure.AcceptingOrders.Services;
 using TestAzure.Shared;
 using TestAzure.Shared.Models.Dto;
+using TestAzure.Shared.Services;
 
 namespace TestAzure.AcceptingOrders.Controllers;
 
-public class ItemsController(ILogger<ItemsController> logger, ItemsService _itemService) : BaseFunctions(logger)
+public class ItemsController(ILogger<ItemsController> logger,
+    ItemsService _itemService, ServiceBusService serviceBusService) : BaseFunctions(logger, serviceBusService)
 {
     [Function("GetItems")]
     public async Task<HttpResponseData> GetItems(

@@ -1,15 +1,17 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using Microsoft.Azure.Functions.Worker.Http;
+using TestAzure.AcceptingOrders.Services;
 using TestAzure.Shared;
 using TestAzure.Shared.Models.Dto;
-using TestAzure.AcceptingOrders.Services;
+using TestAzure.Shared.Services;
 
 namespace TestAzure.AcceptingOrders.Controllers;
 
-public class OrdersController(ILogger<OrdersController> logger, OrdersService _ordersService) : BaseFunctions(logger)
+public class OrdersController(ILogger<OrdersController> logger,
+    OrdersService _ordersService, ServiceBusService serviceBusService) : BaseFunctions(logger, serviceBusService)
 {
     [Function("NewOrder")]
     public async Task<HttpResponseData> NewOrder(
@@ -43,7 +45,7 @@ public class OrdersController(ILogger<OrdersController> logger, OrdersService _o
                 return notFound;
             }
 
-            await SendMessageToServiceBus(Constants.NewOrdersQueue, placedOrder, cancellationToken);
+            await ServiceBusService.SendMessageToServiceBus(Constants.NewOrdersQueue, placedOrder, cancellationToken);
 
             var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(placedOrder, cancellationToken);

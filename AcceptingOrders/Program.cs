@@ -3,6 +3,7 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TestAzure.AcceptingOrders.Services;
+using TestAzure.Shared.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -14,5 +15,6 @@ builder.Services
 
 builder.Services.AddScoped<ItemsService>();
 builder.Services.AddScoped<OrdersService>();
+builder.Services.AddScoped<ServiceBusService>();
 
 builder.Build().Run();

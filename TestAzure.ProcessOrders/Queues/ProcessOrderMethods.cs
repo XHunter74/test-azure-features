@@ -6,10 +6,12 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using TestAzure.Shared;
 using TestAzure.Shared.Models.Dto;
+using TestAzure.Shared.Services;
 
 namespace TestAzure.ProcessOrders.Queues;
 
-public class ProcessOrderMethods(ILogger<ProcessOrderMethods> logger) : BaseFunctions(logger)
+public class ProcessOrderMethods(ILogger<ProcessOrderMethods> logger,
+    ServiceBusService serviceBusService) : BaseFunctions(logger, serviceBusService)
 {
     [Function("ProcessDeadLetters")]
     public async Task ProcessDeadLetters(
@@ -98,7 +100,7 @@ public class ProcessOrderMethods(ILogger<ProcessOrderMethods> logger) : BaseFunc
             Logger.LogError(ex, "An error occurred while updating the order status in Azure Table Storage.");
             return;
         }
-        await SendMessageToServiceBus(Constants.ReportsQueue, order, cancellationToken);
+        await ServiceBusService.SendMessageToServiceBus(Constants.ReportsQueue, order, cancellationToken);
 
         await messageActions.CompleteMessageAsync(message, cancellationToken);
     }
