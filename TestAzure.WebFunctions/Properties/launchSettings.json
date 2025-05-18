@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "AcceptingOrders": {
+    "TestAzure.WebFunctions": {
       "commandName": "Project",
       "commandLineArgs": "--port 7193"
     }

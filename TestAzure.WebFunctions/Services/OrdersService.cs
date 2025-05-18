@@ -56,7 +56,7 @@ public class OrdersService(ILogger<ItemsService> logger) : BaseService(logger)
         return placedOrder;
     }
 
-    public async Task<PlacedOrderDto?> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
+    public async Task<PlacedOrderWithError?> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
     {
         var ordersClient = new TableClient(StorageConnectionString, "orders");
         try
@@ -70,7 +70,7 @@ public class OrdersService(ILogger<ItemsService> logger) : BaseService(logger)
             if (entity == null)
                 return null;
 
-            var placedOrder = new PlacedOrderDto
+            var placedOrder = new PlacedOrderWithError
             {
                 OrderId = orderId,
                 CustomerName = entity.GetString("CustomerName")!,
@@ -81,6 +81,25 @@ public class OrdersService(ILogger<ItemsService> logger) : BaseService(logger)
                 Status = (OrderStatus)(entity.GetInt32("Status") ?? 0),
                 PlacedAt = entity.GetDateTime("PlacedAt") ?? DateTime.MinValue
             };
+
+            if (placedOrder.Status == OrderStatus.Error)
+            {
+                var errorsClient = new TableClient(StorageConnectionString, "ordererrors");
+                var errorResponse = await errorsClient.GetEntityAsync<TableEntity>(
+                    partitionKey: "errors",
+                    rowKey: orderId.ToString(),
+                    cancellationToken: cancellationToken);
+                var errorEntity = errorResponse.Value;
+                if (errorEntity != null)
+                {
+                    var errorDto = new OrderErrorDto
+                    {
+                        Reason = errorEntity.GetString("Reason")!,
+                        Description = errorEntity.GetString("Description")!
+                    };
+                    placedOrder.Error = errorDto;
+                }
+            }
 
             Logger.LogInformation("Order {OrderId} retrieved", orderId);
             return placedOrder;
