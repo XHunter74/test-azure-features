@@ -14,6 +14,7 @@
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.0.0" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.2" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.2" />
+		<PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\TestAzure.Shared\TestAzure.Shared.csproj" />
