@@ -100,7 +100,7 @@ public class ManageOrdersQueue(ILogger<ManageOrdersQueue> logger,
             Logger.LogError(ex, "An error occurred while updating the order status in Azure Table Storage.");
             return;
         }
-        await ServiceBusService.SendMessageToServiceBus(Constants.ReportsQueue, order, cancellationToken);
+        await ServiceBusService.SendMessageToServiceBus(Constants.NotificationTopic, order, cancellationToken, false);
 
         await messageActions.CompleteMessageAsync(message, cancellationToken);
     }

@@ -7,14 +7,17 @@ namespace TestAzure.Shared.Services;
 
 public class ServiceBusService(ILogger<ServiceBusService> logger) : BaseService(logger)
 {
-    public static async Task SendMessageToServiceBus(string queueName, object message, CancellationToken cancellationToken)
+    public static async Task SendMessageToServiceBus(string queueName, object message,
+        CancellationToken cancellationToken, bool createQueue = true)
     {
-        var adminClient = new ServiceBusAdministrationClient(ServiceBusConnectionString);
-        if (!await adminClient.QueueExistsAsync(queueName, cancellationToken))
+        if (createQueue)
         {
-            await adminClient.CreateQueueAsync(queueName, cancellationToken: cancellationToken);
+            var adminClient = new ServiceBusAdministrationClient(ServiceBusConnectionString);
+            if (!await adminClient.QueueExistsAsync(queueName, cancellationToken))
+            {
+                await adminClient.CreateQueueAsync(queueName, cancellationToken: cancellationToken);
+            }
         }
-
         await using var serviceBusClient = new ServiceBusClient(ServiceBusConnectionString);
         var ordersQueueSender = serviceBusClient.CreateSender(queueName);
         var orderMessage = new ServiceBusMessage(JsonSerializer.Serialize(message));
