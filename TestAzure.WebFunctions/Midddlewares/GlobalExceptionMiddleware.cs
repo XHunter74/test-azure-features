@@ -38,5 +38,22 @@ public sealed class GlobalExceptionMiddleware : IFunctionsWorkerMiddleware
                 invocationResult.Value = newHttpResponse;
             }
         }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Unhandled exception caught: {Message}", ex.Message);
+            var result = new AppExceptionModel
+            {
+                Type = ex.GetType().Name,
+                Message = $"An unexpected error occurred: {ex.Message}"
+            };
+            var httpReqData = await context.GetHttpRequestDataAsync();
+            if (httpReqData != null)
+            {
+                var newHttpResponse = httpReqData.CreateResponse(HttpStatusCode.InternalServerError);
+                await newHttpResponse.WriteAsJsonAsync(result);
+                var invocationResult = context.GetInvocationResult();
+                invocationResult.Value = newHttpResponse;
+            }
+        }
     }
 }
