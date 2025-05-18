@@ -17,12 +17,5 @@ public class BaseFunctions
     }
 
     public static string StorageConnectionString => Environment.GetEnvironmentVariable("AzureWebJobsStorage") ?? string.Empty;
-
-    public async Task<HttpResponseData> CreateBadRequestResponse(HttpRequestData req)
-    {
-        Logger.LogWarning("Invalid request payload received.");
-        var response = req.CreateResponse(HttpStatusCode.BadRequest);
-        await response.WriteStringAsync("Invalid request payload");
-        return response;
-    }
+    
 }

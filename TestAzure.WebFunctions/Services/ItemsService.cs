@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using TestAzure.Shared.Models.Dto;
 using TestAzure.Shared.Services;
 
-namespace TestAzure.AcceptingOrders.Services;
+namespace TestAzure.WebFunctions.Services;
 
 public class ItemsService(ILogger<ItemsService> logger) : BaseService(logger)
 {

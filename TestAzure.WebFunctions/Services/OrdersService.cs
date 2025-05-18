@@ -2,12 +2,13 @@
 using Microsoft.Extensions.Logging;
 using TestAzure.Shared.Models.Dto;
 using TestAzure.Shared.Services;
+using TestAzure.WebFunctions.Exceptions;
 
-namespace TestAzure.AcceptingOrders.Services;
+namespace TestAzure.WebFunctions.Services;
 
 public class OrdersService(ILogger<ItemsService> logger) : BaseService(logger)
 {
-    public async Task<PlacedOrderDto?> CreateOrderAsync(NewOrderDto newOrder, CancellationToken cancellationToken = default)
+    public async Task<PlacedOrderDto> CreateOrderAsync(NewOrderDto newOrder, CancellationToken cancellationToken = default)
     {
         var itemsClient = new TableClient(StorageConnectionString, "items");
         TableEntity? itemEntity = null;
@@ -20,8 +21,8 @@ public class OrdersService(ILogger<ItemsService> logger) : BaseService(logger)
         }
 
         if (itemEntity == null)
-            return null;
-        
+            throw new NotFoundException($"Item with name {newOrder.ProductName} not found.");
+
         var unitPrice = Convert.ToDecimal(itemEntity.GetDouble("Price"));
         var totalPrice = unitPrice * newOrder.Quantity;
 
@@ -59,55 +60,49 @@ public class OrdersService(ILogger<ItemsService> logger) : BaseService(logger)
     public async Task<PlacedOrderWithError?> GetOrderByIdAsync(Guid orderId, CancellationToken cancellationToken = default)
     {
         var ordersClient = new TableClient(StorageConnectionString, "orders");
-        try
+        var response = await ordersClient.GetEntityIfExistsAsync<TableEntity>(
+            partitionKey: "orders",
+            rowKey: orderId.ToString(),
+            cancellationToken: cancellationToken);
+
+        if (!response.HasValue)
+            throw new NotFoundException($"Order with ID {orderId} not found.");
+
+        var entity = response.Value;
+
+        var placedOrder = new PlacedOrderWithError
         {
-            var response = await ordersClient.GetEntityAsync<TableEntity>(
-                partitionKey: "orders",
+            OrderId = orderId,
+            CustomerName = entity.GetString("CustomerName")!,
+            ProductName = entity.GetString("ProductName")!,
+            Quantity = entity.GetInt32("Quantity") ?? 0,
+            UnitPrice = Convert.ToDecimal(entity.GetDouble("UnitPrice")),
+            TotalPrice = Convert.ToDecimal(entity.GetDouble("TotalPrice")),
+            Status = (OrderStatus)(entity.GetInt32("Status") ?? 0),
+            PlacedAt = entity.GetDateTime("PlacedAt") ?? DateTime.MinValue
+        };
+
+        if (placedOrder.Status == OrderStatus.Error)
+        {
+            var errorsClient = new TableClient(StorageConnectionString, "ordererrors");
+            var errorResponse = await errorsClient.GetEntityIfExistsAsync<TableEntity>(
+                partitionKey: "errors",
                 rowKey: orderId.ToString(),
                 cancellationToken: cancellationToken);
-            var entity = response.Value;
-
-            if (entity == null)
-                return null;
-
-            var placedOrder = new PlacedOrderWithError
+            if (errorResponse.HasValue)
             {
-                OrderId = orderId,
-                CustomerName = entity.GetString("CustomerName")!,
-                ProductName = entity.GetString("ProductName")!,
-                Quantity = entity.GetInt32("Quantity") ?? 0,
-                UnitPrice = Convert.ToDecimal(entity.GetDouble("UnitPrice")),
-                TotalPrice = Convert.ToDecimal(entity.GetDouble("TotalPrice")),
-                Status = (OrderStatus)(entity.GetInt32("Status") ?? 0),
-                PlacedAt = entity.GetDateTime("PlacedAt") ?? DateTime.MinValue
-            };
-
-            if (placedOrder.Status == OrderStatus.Error)
-            {
-                var errorsClient = new TableClient(StorageConnectionString, "ordererrors");
-                var errorResponse = await errorsClient.GetEntityAsync<TableEntity>(
-                    partitionKey: "errors",
-                    rowKey: orderId.ToString(),
-                    cancellationToken: cancellationToken);
                 var errorEntity = errorResponse.Value;
-                if (errorEntity != null)
-                {
-                    var errorDto = new OrderErrorDto
-                    {
-                        Reason = errorEntity.GetString("Reason")!,
-                        Description = errorEntity.GetString("Description")!
-                    };
-                    placedOrder.Error = errorDto;
-                }
-            }
 
-            Logger.LogInformation("Order {OrderId} retrieved", orderId);
-            return placedOrder;
+                var errorDto = new OrderErrorDto
+                {
+                    Reason = errorEntity.GetString("Reason")!,
+                    Description = errorEntity.GetString("Description")!
+                };
+                placedOrder.Error = errorDto;
+            }
         }
-        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
-        {
-            Logger.LogWarning("Order {OrderId} not found", orderId);
-            return null;
-        }
+
+        Logger.LogInformation("Order {OrderId} retrieved", orderId);
+        return placedOrder;
     }
 }

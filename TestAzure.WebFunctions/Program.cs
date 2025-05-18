@@ -2,19 +2,26 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using TestAzure.AcceptingOrders.Services;
 using TestAzure.Shared.Services;
+using TestAzure.WebFunctions.Midddlewares;
+using TestAzure.WebFunctions.Services;
 
-var builder = FunctionsApplication.CreateBuilder(args);
+var builder = Host.CreateDefaultBuilder(args); // Changed to Host.CreateDefaultBuilder
 
-builder.ConfigureFunctionsWebApplication();
+builder.ConfigureFunctionsWorkerDefaults(worker =>
+{
+    worker.UseMiddleware<GlobalExceptionMiddleware>();
+});
 
-builder.Services
-    .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
+builder.ConfigureServices(services =>
+{
+    services.AddApplicationInsightsTelemetryWorkerService()
+            .ConfigureFunctionsApplicationInsights();
 
-builder.Services.AddScoped<ItemsService>();
-builder.Services.AddScoped<OrdersService>();
-builder.Services.AddScoped<ServiceBusService>();
+    services.AddScoped<ItemsService>();
+    services.AddScoped<OrdersService>();
+    services.AddScoped<ServiceBusService>();
+});
 
-builder.Build().Run();
+var host = builder.Build();
+host.Run();

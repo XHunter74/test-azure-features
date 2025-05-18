@@ -2,10 +2,11 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using TestAzure.AcceptingOrders.Services;
 using TestAzure.Shared;
 using TestAzure.Shared.Models.Dto;
 using TestAzure.Shared.Services;
+using TestAzure.WebFunctions.Exceptions;
+using TestAzure.WebFunctions.Services;
 
 namespace TestAzure.AcceptingOrders.Controllers;
 
@@ -37,11 +38,11 @@ public class ItemsController(ILogger<ItemsController> logger,
         }
         catch
         {
-            return await CreateBadRequestResponse(req);
+            throw new BadRequestException("Invalid request payload");
         }
         if (newItemDto == null || string.IsNullOrEmpty(newItemDto.Name) || newItemDto.Price <= 0)
         {
-            return await CreateBadRequestResponse(req);
+            throw new BadRequestException("Invalid request payload");
         }
 
         var itemDto = await _itemService.CreateNewItemAsync(newItemDto, cancellationToken);
