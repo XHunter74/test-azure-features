@@ -7,11 +7,8 @@ using TestAzure.WebFunctions.Exceptions;
 
 namespace TestAzure.WebFunctions.Midddlewares;
 
-public sealed class GlobalExceptionMiddleware : IFunctionsWorkerMiddleware
+public sealed class GlobalExceptionMiddleware(ILogger<GlobalExceptionMiddleware> _logger) : IFunctionsWorkerMiddleware
 {
-    private readonly ILogger<GlobalExceptionMiddleware> _log;
-    public GlobalExceptionMiddleware(ILogger<GlobalExceptionMiddleware> log) => _log = log;
-
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
         try
@@ -20,7 +17,7 @@ public sealed class GlobalExceptionMiddleware : IFunctionsWorkerMiddleware
         }
         catch (AppException ex)
         {
-            _log.LogError(ex, "AppException caught: {Message}", ex.Message);
+            _logger.LogError(ex, "AppException caught: {Message}", ex.Message);
             var result = new AppExceptionModel
             {
                 Type = ex.GetType().Name,
@@ -40,7 +37,7 @@ public sealed class GlobalExceptionMiddleware : IFunctionsWorkerMiddleware
         }
         catch (Exception ex)
         {
-            _log.LogError(ex, "Unhandled exception caught: {Message}", ex.Message);
+            _logger.LogError(ex, "Unhandled exception caught: {Message}", ex.Message);
             var result = new AppExceptionModel
             {
                 Type = ex.GetType().Name,
